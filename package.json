@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:seed": "tsx tests/seed.ts",
-    "fixtures:generate": "tsx tests/fixtures/generate-images.ts"
+    "fixtures:generate": "tsx tests/fixtures/generate-images.ts",
+    "test:evals": "tsx tests/evals/run.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.17",

@@ -36,20 +36,26 @@ const RECEIPT_SCHEMA = {
     amount: { type: ["number", "null"], description: "Final total paid" },
     currency: { type: ["string", "null"], description: "ISO 4217 code" },
     store_name: { type: ["string", "null"] },
+    // anyOf rather than type:["string","null"] with an enum — the API rejects
+    // an enum alongside a union type.
     category: {
-      type: ["string", "null"],
-      enum: [
-        "Groceries",
-        "Dining & Restaurants",
-        "Gas & Petrol",
-        "Transport & Travel",
-        "Pharmacy & Health",
-        "Clothing & Accessories",
-        "Electronics",
-        "Entertainment",
-        "Utilities",
-        "Other",
-        null,
+      anyOf: [
+        {
+          type: "string",
+          enum: [
+            "Groceries",
+            "Dining & Restaurants",
+            "Gas & Petrol",
+            "Transport & Travel",
+            "Pharmacy & Health",
+            "Clothing & Accessories",
+            "Electronics",
+            "Entertainment",
+            "Utilities",
+            "Other",
+          ],
+        },
+        { type: "null" },
       ],
     },
     items: {
