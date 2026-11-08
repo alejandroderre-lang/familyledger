@@ -6,6 +6,85 @@ Built for two people: a standard user who photographs receipts on her phone, and
 
 ---
 
+## Architecture
+
+Everything below is what the code actually does today — local only, nothing deployed.
+
+The browser holds the **anon** key and is confined by row-level security. The **service role** key and the **Anthropic** key exist only inside the edge function. The two never meet: the browser uploads an image and asks for a parse, but it is the function that reads the image back out of storage and talks to Anthropic.
+
+```mermaid
+flowchart LR
+    subgraph browser["Browser · localhost:5173"]
+        direction TB
+        spa["React 19 SPA<br/>Vite · TanStack Query"]
+        prep["prepareImage<br/>HEIC to JPEG, 1MB cap"]
+        sdk["supabase-js<br/>ANON key"]
+        spa --> prep --> sdk
+    end
+
+    subgraph stack["Supabase · Docker, :54321"]
+        direction TB
+        auth["GoTrue"]
+        rest["PostgREST"]
+        store["Storage<br/>receipts, private"]
+        edge["parse-receipt<br/>Deno · SERVICE ROLE"]
+    end
+
+    db[("Postgres<br/>profiles, receipts,<br/>expenses, expense_items<br/>RLS on all four")]
+    anthropic["api.anthropic.com<br/>claude-opus-5"]
+
+    sdk -->|"sign in"| auth
+    sdk -->|"CRUD · RLS applies"| rest
+    sdk -->|"upload jpg<br/>read via 1h signed URL"| store
+    sdk -->|"invoke"| edge
+
+    rest --> db
+    edge -->|"read image"| store
+    edge -->|"image + schema"| anthropic
+    edge -->|"write · bypasses RLS"| db
+
+    classDef secret fill:#111,color:#fff,stroke:#111,stroke-width:1px
+    class edge,anthropic secret
+```
+
+The two black nodes are the only places a privileged key exists. The browser's anon key can reach `rest`, `store` and `auth`, and nothing it holds can bypass row-level security.
+
+### The parse path, step by step
+
+The non-obvious part is that the image makes two trips: the browser puts it into storage, and the function fetches it back out. The browser never sends image bytes to the function — only a row id and a storage path.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant B as Browser
+    participant S as Storage
+    participant F as parse-receipt
+    participant A as Anthropic
+    participant P as Postgres
+
+    U->>B: picks a photo
+    B->>B: HEIC to JPEG, compress to 1MB
+    B->>S: upload user_id/uuid.jpg
+    B->>P: insert receipt, status processing
+    B->>F: invoke with receipt_id + image_url
+    F->>S: download image
+    F->>A: image + prompt, json_schema output
+    A-->>F: structured parse
+    F->>P: insert expense + line items
+    F->>P: set receipts.status parsed
+    F-->>B: parsed fields
+    B->>S: createSignedUrl, 1h, to show the photo
+    B->>U: Review screen, pre-filled and editable
+    U->>B: confirms
+    B->>P: upsert expense, delete and re-insert items
+    B->>P: set receipts.status confirmed
+```
+
+If any step after the upload fails, the receipt row still exists, so the UI offers manual entry rather than losing the photo.
+
+---
+
 ## Stack
 
 | Layer | Choice |
