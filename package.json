@@ -15,7 +15,8 @@
     "test:e2e:headed": "SLOW_MO=600 playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
     "test:seed:data": "tsx tests/seed-expenses.ts",
-    "screenshots": "tsx tests/screenshots.ts"
+    "screenshots": "tsx tests/screenshots.ts",
+    "design:shots": "tsx tests/design-shots.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.17",

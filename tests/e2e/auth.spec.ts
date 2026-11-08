@@ -21,7 +21,7 @@ test.describe('authentication', () => {
 
   test('valid credentials land on the dashboard', async ({ page }) => {
     await signIn(page)
-    await expect(page.getByText('This Month', { exact: true })).toBeVisible()
+    await expect(page.getByText('This month', { exact: true })).toBeVisible()
   })
 
   test('session survives a page reload', async ({ page }) => {
@@ -29,7 +29,7 @@ test.describe('authentication', () => {
     await page.reload()
     // Must not bounce back to /login — the persisted session is restored.
     await expect(page).toHaveURL('/')
-    await expect(page.getByText('This Month', { exact: true })).toBeVisible()
+    await expect(page.getByText('This month', { exact: true })).toBeVisible()
   })
 
   test('standard user does not see the Admin tab', async ({ page }) => {

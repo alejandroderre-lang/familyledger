@@ -25,33 +25,31 @@ export function ExpenseRow({ expense, onClick, showUser = false }: ExpenseRowPro
     <button
       type="button"
       onClick={() => onClick?.(expense)}
-      className="flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors active:bg-muted"
+      className="flex min-h-[60px] w-full items-center gap-3 border-b border-rule px-4 py-3 text-left transition-colors last:border-b-0 active:bg-muted"
     >
+      {/* A 2px colour tick instead of a filled pill: category is still legible
+          at a glance, but the row stays monochrome the way Ramp's tables do. */}
+      <span
+        aria-hidden
+        className="h-7 w-[3px] shrink-0 rounded-full"
+        style={{ backgroundColor: getCategoryColor(expense.category) }}
+      />
+
       <div className="min-w-0 flex-1">
-        <p className="truncate text-base font-semibold text-foreground">
+        <p className="truncate text-[15px] font-medium leading-tight text-foreground">
           {expense.store_name}
         </p>
-        <p className="text-[13px] text-muted-foreground">
-          {formatShortDate(expense.date)}
+        <p className="mt-0.5 truncate text-[12px] leading-tight text-muted-foreground">
+          {formatShortDate(expense.date)} · {expense.category}
+          {showUser && expense.profile?.full_name
+            ? ` · ${expense.profile.full_name}`
+            : ''}
         </p>
-        {showUser && expense.profile?.full_name && (
-          <span className="mt-1 inline-block rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-            {expense.profile.full_name}
-          </span>
-        )}
       </div>
 
-      <div className="flex shrink-0 flex-col items-end gap-1">
-        <span className="text-base font-bold text-primary">
-          {formatCurrency(expense.amount, expense.currency)}
-        </span>
-        <span
-          className="rounded px-2 py-0.5 text-xs font-medium text-white"
-          style={{ backgroundColor: getCategoryColor(expense.category) }}
-        >
-          {expense.category}
-        </span>
-      </div>
+      <span className="shrink-0 text-[15px] font-semibold tabular-nums tracking-tight text-foreground">
+        {formatCurrency(expense.amount, expense.currency)}
+      </span>
     </button>
   )
 }

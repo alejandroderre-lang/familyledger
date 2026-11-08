@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import { Loader2, Plus } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
-import { SummaryCards } from '@/components/dashboard/SummaryCards'
-import { CategoryChart } from '@/components/dashboard/CategoryChart'
+import { MetricStrip } from '@/components/dashboard/MetricStrip'
+import { CategoryBars } from '@/components/dashboard/CategoryBars'
 import { RecentExpenses } from '@/components/dashboard/RecentExpenses'
+import { DesignSwitcher } from '@/components/DesignSwitcher'
+import { useDesign } from '@/design/useDesign'
 import { QueryError } from '@/components/QueryError'
 import { useAuth } from '@/hooks/useAuth'
 import { useExpenses } from '@/hooks/useExpenses'
@@ -16,17 +18,39 @@ export default function Dashboard() {
 
   const currency = dominantCurrency(expenses)
   const firstName = profile?.full_name?.split(' ')[0]
+  const [direction, setDirection] = useDesign()
+
+  const today = new Intl.DateTimeFormat('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date())
 
   return (
     <AppShell>
-      <header className="px-4 pt-6">
-        <h1 className="text-[28px] font-bold text-foreground">
-          {firstName ? `Hi, ${firstName}` : 'Dashboard'}
-        </h1>
-        <p className="text-sm text-muted-foreground">Here's your spending</p>
+      {/* Micro-label above the title, action aligned to the baseline on the
+          right. Putting the primary action in the header is Ramp's pattern and
+          it stops a floating button from covering transaction rows. */}
+      <header className="flex items-start justify-between gap-3 border-b border-rule px-4 pb-4 pt-6">
+        <div className="min-w-0">
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+            {today}
+          </p>
+          <h1 className="mt-1.5 truncate text-[24px] font-semibold tracking-tight text-foreground">
+            {firstName ? `Hi, ${firstName}` : 'Dashboard'}
+          </h1>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate('/upload')}
+          className="mt-1 flex h-11 shrink-0 items-center gap-1.5 rounded-[--radius] bg-primary pl-2.5 pr-3.5 text-[13px] font-medium text-primary-foreground transition-opacity active:opacity-80"
+        >
+          <Plus className="h-4 w-4" strokeWidth={2.5} />
+          Add
+        </button>
       </header>
 
-      <div className="mt-6">
+      <div className="mt-4">
         {isLoading ? (
           <div className="flex justify-center py-16">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -35,24 +59,23 @@ export default function Dashboard() {
           <QueryError onRetry={() => refetch()} />
         ) : (
           <>
-            <SummaryCards expenses={expenses} currency={currency} />
-            <CategoryChart expenses={expenses} currency={currency} />
+            <MetricStrip
+              expenses={expenses}
+              currency={currency}
+              direction={direction}
+            />
+            <CategoryBars
+              expenses={expenses}
+              currency={currency}
+              direction={direction}
+            />
             <RecentExpenses expenses={expenses} />
           </>
         )}
       </div>
 
-      {/* FAB — anchored to the bottom-right of the 430px column on all sizes. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 mx-auto max-w-app">
-        <button
-          type="button"
-          onClick={() => navigate('/upload')}
-          aria-label="Add receipt"
-          className="pointer-events-auto absolute bottom-20 right-4 flex h-14 w-14 items-center justify-center rounded-full bg-success text-white shadow-fab"
-        >
-          <Plus className="h-6 w-6" />
-        </button>
-      </div>
+      <DesignSwitcher active={direction} onChange={setDirection} />
+
     </AppShell>
   )
 }

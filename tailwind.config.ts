@@ -19,6 +19,13 @@ const config: Config = {
       },
       colors: {
         border: 'hsl(var(--border))',
+        rule: 'hsl(var(--rule))',
+        'rule-strong': 'hsl(var(--rule-strong))',
+        hero: {
+          DEFAULT: 'hsl(var(--hero-bg))',
+          foreground: 'hsl(var(--hero-fg))',
+        },
+        mark: 'hsl(var(--accent-mark))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
