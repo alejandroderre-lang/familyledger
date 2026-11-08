@@ -167,7 +167,9 @@ Reading line items:
 - Quantity lines often appear as a separate row ("2 x 1,50" or "0,684 kg x 3,99"). Fold these into the item: quantity 2, unit_price 1.50, total_price 3.00.
 - A line with no explicit quantity has quantity 1 and unit_price equal to total_price.
 - Discounts, coupons, and deposit refunds are items with a negative total_price.
-- Skip non-item rows: subtotals, tax lines, payment method, loyalty points, barcodes, footer text.
+- Mandatory charges the customer actually paid ARE items: service charge, cover charge, delivery fee, city or tourist tax, container deposits. Include them as ordinary lines so the breakdown accounts for the total.
+- A suggested or optional gratuity is NOT an item. Receipts often print "Suggested: 10% = ... 15% = ..." below the total; those are prompts for the customer, not charges, and must be ignored. Only a tip that was actually added to the bill counts.
+- Skip non-item rows: subtotals, tax lines that merely restate VAT already included in the prices, payment method, change, loyalty points, barcodes, footer text.
 
 Decimal and date conventions:
 - Many receipts use a comma as the decimal separator ("12,50" = 12.50) and a period as the thousands separator. Always emit numbers in JSON form: 12.50, never "12,50".

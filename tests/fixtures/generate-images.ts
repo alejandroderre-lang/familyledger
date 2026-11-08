@@ -19,9 +19,11 @@ const outDir = join(here, 'images')
 async function main() {
   await mkdir(outDir, { recursive: true })
   const browser = await chromium.launch()
+  // Wide enough for the A4-style invoice and folio fixtures; the screenshot
+  // crops to the .receipt element, so narrow till receipts are unaffected.
   const page = await browser.newPage({
-    viewport: { width: 400, height: 700 },
-    deviceScaleFactor: 2, // ~800px wide — comparable to a downscaled phone photo
+    viewport: { width: 760, height: 1200 },
+    deviceScaleFactor: 2,
   })
 
   for (const fixture of RECEIPT_FIXTURES) {

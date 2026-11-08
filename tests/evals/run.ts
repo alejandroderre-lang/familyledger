@@ -122,6 +122,12 @@ async function runFixture(fixture: ReceiptFixture, userId: string) {
   })
   const elapsed = ((Date.now() - started) / 1000).toFixed(1)
 
+  // Evals and the Playwright suite share the test account. Leaving these rows
+  // behind changes what the dashboard renders and breaks E2E assertions, so
+  // clean up regardless of outcome. expenses/expense_items cascade.
+  await admin.from('receipts').delete().eq('id', receipt.id)
+  await admin.storage.from('receipts').remove([path])
+
   if (error) {
     let detail = error.message
     const ctx = (error as { context?: Response }).context
