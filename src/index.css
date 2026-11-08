@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* FamilyLedger palette mapped to shadcn semantic tokens (HSL triplets) */
+    --background: 210 40% 98%; /* #F8FAFC off-white app background */
+    --foreground: 222.2 47.4% 11.2%; /* #0F172A near-black text */
+
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 222.2 47.4% 11.2%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+
+    --primary: 221 47% 20%; /* #1B2A4A deep navy */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%; /* #64748B */
+
+    --accent: 210 40% 96.1%; /* shadcn internal hover token (subtle slate) */
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84% 60%; /* #EF4444 */
+    --destructive-foreground: 0 0% 100%;
+
+    /* Brand tokens */
+    --success: 142 71% 45%; /* #22C55E green */
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%; /* #F59E0B amber */
+    --warning-foreground: 0 0% 100%;
+
+    --border: 214.3 31.8% 91.4%; /* #E2E8F0 */
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221 47% 20%; /* navy focus ring */
+
+    --radius: 0.75rem; /* 12px cards; inputs/buttons resolve to 8px via calc */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-size: 16px; /* minimum body size for the target user */
+  }
+}
