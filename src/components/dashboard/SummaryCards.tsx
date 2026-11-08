@@ -31,19 +31,33 @@ export function SummaryCards({ expenses, currency }: SummaryCardsProps) {
   ]
 
   return (
-    <div className="flex gap-3 overflow-x-auto px-4 pb-1">
-      {cards.map((card) => (
+    // snap-x makes the half-visible third card read as "there is more here"
+    // rather than as a clipped layout; scrollbar-none keeps it clean on
+    // desktop. scroll-px/pr-4 preserve the 16px gutter at both ends.
+    <div className="scrollbar-none flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-1">
+      {cards.map((card, index) => (
         <div
           key={card.label}
-          className="flex w-40 shrink-0 flex-col rounded-xl border border-border bg-card p-4 shadow-card"
+          className={[
+            'flex w-40 shrink-0 snap-start flex-col rounded-xl border bg-card p-4',
+            // The current month is the number that matters most; give it the
+            // visual weight instead of three identical cards.
+            index === 0
+              ? 'border-primary/25 shadow-card ring-1 ring-primary/10'
+              : 'border-border shadow-card',
+          ].join(' ')}
         >
-          <span className="text-xs text-muted-foreground">{card.label}</span>
-          <span className="mt-2 text-2xl font-bold text-primary">
+          <span className="text-xs font-medium text-muted-foreground">
+            {card.label}
+          </span>
+          <span className="mt-2 text-2xl font-bold tabular-nums text-primary">
             {formatCurrency(card.amount, currency)}
           </span>
           <span className="mt-1 text-xs text-muted-foreground">{currency}</span>
         </div>
       ))}
+      {/* Trailing spacer so the last card can snap clear of the right edge. */}
+      <div aria-hidden className="w-1 shrink-0" />
     </div>
   )
 }

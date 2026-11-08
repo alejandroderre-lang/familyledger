@@ -20,6 +20,7 @@ export function CategoryChart({ expenses, currency }: CategoryChartProps) {
     isInMonth(e.date, now.getFullYear(), now.getMonth()),
   )
   const data = groupByCategory(monthExpenses)
+  const monthTotal = data.reduce((sum, entry) => sum + entry.total, 0)
 
   return (
     <section className="mt-6 px-4">
@@ -38,7 +39,9 @@ export function CategoryChart({ expenses, currency }: CategoryChartProps) {
           </div>
         ) : (
           <>
-            <div className="mt-2 h-[200px] w-full">
+            {/* The donut's hole is the most prominent empty space on the
+                screen; the month total is the number people look for first. */}
+            <div className="relative mt-2 h-[200px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -47,8 +50,10 @@ export function CategoryChart({ expenses, currency }: CategoryChartProps) {
                     nameKey="category"
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
+                    innerRadius={62}
+                    outerRadius={92}
+                    paddingAngle={2}
+                    cornerRadius={4}
                     stroke="none"
                   >
                     {data.map((entry) => (
@@ -60,23 +65,40 @@ export function CategoryChart({ expenses, currency }: CategoryChartProps) {
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
+
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-xs text-muted-foreground">Total</span>
+                <span className="text-xl font-bold text-primary">
+                  {formatCurrency(monthTotal, currency)}
+                </span>
+              </div>
             </div>
 
-            <ul className="mt-4 flex flex-col gap-2">
-              {data.map((entry) => (
-                <li key={entry.category} className="flex items-center gap-2">
-                  <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: getCategoryColor(entry.category) }}
-                  />
-                  <span className="flex-1 truncate text-sm text-foreground">
-                    {entry.category}
-                  </span>
-                  <span className="text-sm font-medium text-foreground">
-                    {formatCurrency(entry.total, currency)}
-                  </span>
-                </li>
-              ))}
+            <ul className="mt-5 flex flex-col">
+              {data.map((entry) => {
+                const share = monthTotal > 0 ? (entry.total / monthTotal) * 100 : 0
+                return (
+                  <li
+                    key={entry.category}
+                    className="flex items-center gap-3 border-b border-border py-2.5 last:border-b-0"
+                  >
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: getCategoryColor(entry.category) }}
+                    />
+                    <span className="flex-1 truncate text-sm text-foreground">
+                      {entry.category}
+                    </span>
+                    {/* Tabular numerals so the amounts form a clean column. */}
+                    <span className="w-11 text-right text-xs tabular-nums text-muted-foreground">
+                      {share.toFixed(0)}%
+                    </span>
+                    <span className="w-20 text-right text-sm font-semibold tabular-nums text-foreground">
+                      {formatCurrency(entry.total, currency)}
+                    </span>
+                  </li>
+                )
+              })}
             </ul>
           </>
         )}

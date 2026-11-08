@@ -12,12 +12,16 @@ export function RecentExpenses({ expenses }: RecentExpensesProps) {
 
   return (
     <section className="mt-6">
-      <div className="flex items-center justify-between px-4">
+      {/* pr-20 keeps "See all" clear of the floating action button, which is
+          fixed 16px from the right edge and would otherwise sit on top of it. */}
+      <div className="flex items-center justify-between px-4 pr-20">
         <h2 className="text-base font-semibold text-foreground">Recent</h2>
         <button
           type="button"
           onClick={() => navigate('/expenses')}
-          className="text-sm font-medium text-primary"
+          // -mr-2/px-2 keep the text optically aligned while the tap target
+          // meets the 48px minimum the design system requires.
+          className="-mr-2 flex min-h-[48px] items-center rounded-lg px-2 text-sm font-medium text-primary active:bg-primary/5"
         >
           See all →
         </button>

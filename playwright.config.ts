@@ -20,6 +20,10 @@ export default defineConfig({
     baseURL: 'http://localhost:5173',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // SLOW_MO=500 pauses between actions so a headed run is followable by eye.
+    launchOptions: process.env.SLOW_MO
+      ? { slowMo: Number(process.env.SLOW_MO) }
+      : {},
   },
 
   projects: [
