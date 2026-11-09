@@ -165,6 +165,7 @@ Reading the total:
 Reading line items:
 - Transcribe descriptions exactly as printed, including abbreviations and truncations. Do not expand "MLK 2% 1L" into "Milk 2% 1 Litre" — keep what the receipt says.
 - Quantity lines often appear as a separate row ("2 x 1,50" or "0,684 kg x 3,99"). Fold these into the item: quantity 2, unit_price 1.50, total_price 3.00.
+- The same applies when the quantity is printed inline on the item's own line ("PFAND 6 x 0,25", "COFFEE 2 @ 3.50"): put the numbers in quantity and unit_price, and set description to the item name ALONE — "PFAND", "COFFEE". Never repeat the quantity expression inside the description; it is already captured in its own fields.
 - A line with no explicit quantity has quantity 1 and unit_price equal to total_price.
 - Discounts, coupons, and deposit refunds are items with a negative total_price.
 - Mandatory charges the customer actually paid ARE items: service charge, cover charge, delivery fee, city or tourist tax, container deposits. Include them as ordinary lines so the breakdown accounts for the total.
