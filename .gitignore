@@ -45,3 +45,9 @@ tests/demo/
 
 # Device fixtures are generated (npm run fixtures:device) and large
 tests/fixtures/device/
+
+# Vercel CLI: project link, and the OIDC token it writes into .env.local.
+# The negation keeps .env.example tracked despite the broad .env* rule.
+.vercel
+.env*
+!.env.example
