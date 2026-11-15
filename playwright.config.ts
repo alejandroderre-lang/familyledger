@@ -33,6 +33,13 @@ export default defineConfig({
       // viewport it was designed for rather than a desktop default.
       use: { ...devices['Pixel 7'] },
     },
+    {
+      name: 'mobile-safari',
+      // WebKit is Safari's engine. Not iOS Safari itself — no real camera, no
+      // iOS quirks — but it catches engine-level differences that Chromium
+      // hides, which matters for a user on an iPhone.
+      use: { ...devices['iPhone 14'] },
+    },
   ],
 
   webServer: {

@@ -42,3 +42,6 @@ tests/screenshots/
 
 # Demo recording working files (only docs/demo.gif is committed)
 tests/demo/
+
+# Device fixtures are generated (npm run fixtures:device) and large
+tests/fixtures/device/
