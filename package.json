@@ -18,7 +18,8 @@
     "screenshots": "tsx tests/screenshots.ts",
     "design:shots": "tsx tests/design-shots.ts",
     "diagrams:check": "tsx tests/render-diagrams.ts",
-    "demo:record": "tsx tests/record-demo.ts"
+    "demo:record": "tsx tests/record-demo.ts",
+    "explore": "tsx tests/explore.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.17",

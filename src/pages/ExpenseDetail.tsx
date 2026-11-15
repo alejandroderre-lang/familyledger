@@ -190,7 +190,17 @@ export default function ExpenseDetail() {
     )
   }
 
-  const displayTotal = formatCurrency(Number(amount || expense.amount), currency)
+  const receiptTotal = Number(amount || expense.amount)
+  const displayTotal = formatCurrency(receiptTotal, currency)
+  // itemsTotal() takes the editor's EditableItem shape; stored rows are
+  // ExpenseItem, so sum them directly rather than inventing an editor key.
+  const lineItemsTotal = (expense.items ?? []).reduce(
+    (sum, item) => sum + Number(item.total_price),
+    0,
+  )
+  // A cent of slack: these are two independently rounded decimals, and a
+  // sub-cent float difference is not a real discrepancy.
+  const hasTotalGap = Math.abs(receiptTotal - lineItemsTotal) > 0.005
 
   return (
     <div
@@ -353,14 +363,43 @@ export default function ExpenseDetail() {
                       </td>
                     </tr>
                   ))}
-                  <tr className="bg-card font-bold">
-                    <td className="p-2 text-foreground" colSpan={3}>
-                      Total
+                  {/* The footer sums the rows above it. Where the receipt
+                      total differs — tax, service charge, a deposit — both
+                      figures are shown rather than the larger one silently
+                      replacing the sum, because that gap is real information
+                      about the receipt. */}
+                  <tr
+                    className={
+                      hasTotalGap
+                        ? 'bg-card text-muted-foreground'
+                        : 'bg-card font-bold text-foreground'
+                    }
+                  >
+                    <td className="p-2" colSpan={3}>
+                      {hasTotalGap ? 'Items subtotal' : 'Total'}
                     </td>
-                    <td className="p-2 text-right text-foreground">
-                      {displayTotal}
+                    <td className="p-2 text-right tabular-nums">
+                      {formatCurrency(lineItemsTotal, currency)}
                     </td>
                   </tr>
+                  {hasTotalGap && (
+                    <>
+                      <tr className="bg-card text-muted-foreground">
+                        <td className="p-2" colSpan={3}>
+                          Not itemised
+                        </td>
+                        <td className="p-2 text-right tabular-nums">
+                          {formatCurrency(receiptTotal - lineItemsTotal, currency)}
+                        </td>
+                      </tr>
+                      <tr className="border-t border-border bg-card font-bold text-foreground">
+                        <td className="p-2" colSpan={3}>
+                          Receipt total
+                        </td>
+                        <td className="p-2 text-right tabular-nums">{displayTotal}</td>
+                      </tr>
+                    </>
+                  )}
                 </tbody>
               </table>
             </div>
