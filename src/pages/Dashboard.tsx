@@ -4,8 +4,6 @@ import { AppShell } from '@/components/layout/AppShell'
 import { MetricStrip } from '@/components/dashboard/MetricStrip'
 import { CategoryBars } from '@/components/dashboard/CategoryBars'
 import { RecentExpenses } from '@/components/dashboard/RecentExpenses'
-import { DesignSwitcher } from '@/components/DesignSwitcher'
-import { useDesign } from '@/design/useDesign'
 import { QueryError } from '@/components/QueryError'
 import { useAuth } from '@/hooks/useAuth'
 import { useExpenses } from '@/hooks/useExpenses'
@@ -18,7 +16,6 @@ export default function Dashboard() {
 
   const currency = dominantCurrency(expenses)
   const firstName = profile?.full_name?.split(' ')[0]
-  const [direction, setDirection] = useDesign()
 
   const today = new Intl.DateTimeFormat('en-GB', {
     weekday: 'long',
@@ -59,22 +56,13 @@ export default function Dashboard() {
           <QueryError onRetry={() => refetch()} />
         ) : (
           <>
-            <MetricStrip
-              expenses={expenses}
-              currency={currency}
-              direction={direction}
-            />
-            <CategoryBars
-              expenses={expenses}
-              currency={currency}
-              direction={direction}
-            />
+            <MetricStrip expenses={expenses} currency={currency} />
+            <CategoryBars expenses={expenses} currency={currency} />
             <RecentExpenses expenses={expenses} />
           </>
         )}
       </div>
 
-      <DesignSwitcher active={direction} onChange={setDirection} />
 
     </AppShell>
   )

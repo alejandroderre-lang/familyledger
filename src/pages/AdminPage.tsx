@@ -79,14 +79,16 @@ export default function AdminPage() {
 
       {/* My / All users toggle */}
       <div className="px-4">
-        <div className="flex rounded-lg border border-border bg-card p-1">
+        <div className="flex rounded-[--radius] border border-rule bg-card p-1">
           {(['mine', 'all'] as Mode[]).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setMode(m)}
+              // h-12 keeps the control at the 48px minimum; the previous h-10
+              // measured 40px in the exploratory sweep.
               className={cn(
-                'h-10 flex-1 rounded-md text-sm font-medium transition-colors',
+                'h-12 flex-1 rounded-[--radius] text-sm font-medium transition-colors',
                 mode === m
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground',

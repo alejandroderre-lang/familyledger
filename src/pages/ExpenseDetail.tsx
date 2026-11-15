@@ -238,7 +238,7 @@ export default function ExpenseDetail() {
           <button
             type="button"
             onClick={() => setLightboxOpen(true)}
-            className="overflow-hidden rounded-xl"
+            className="overflow-hidden rounded-[--radius]"
           >
             <img
               src={imageUrl}
@@ -247,7 +247,7 @@ export default function ExpenseDetail() {
             />
           </button>
         ) : (
-          <div className="flex h-[120px] items-center justify-center rounded-xl bg-muted">
+          <div className="flex h-[120px] items-center justify-center rounded-[--radius] bg-muted">
             <ReceiptIcon className="h-8 w-8 text-muted-foreground" />
           </div>
         )}
@@ -340,7 +340,7 @@ export default function ExpenseDetail() {
           {editMode ? (
             <LineItemsEditor items={items} onChange={handleItemsChange} />
           ) : expense.items && expense.items.length > 0 ? (
-            <div className="overflow-hidden rounded-xl border border-border">
+            <div className="overflow-hidden rounded-[--radius] border border-rule">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-card text-left text-muted-foreground">
@@ -392,7 +392,7 @@ export default function ExpenseDetail() {
                           {formatCurrency(receiptTotal - lineItemsTotal, currency)}
                         </td>
                       </tr>
-                      <tr className="border-t border-border bg-card font-bold text-foreground">
+                      <tr className="border-t border-rule bg-card font-bold text-foreground">
                         <td className="p-2" colSpan={3}>
                           Receipt total
                         </td>
@@ -465,7 +465,7 @@ export default function ExpenseDetail() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-card">
+    <div className="rounded-[--radius] border border-rule bg-card p-4">
       <p className="mb-2 text-sm font-semibold text-muted-foreground">{label}</p>
       {children}
     </div>

@@ -248,7 +248,7 @@ export default function ReviewReceipt() {
                 </button>
               ) : (
                 <div>
-                  <div className="overflow-hidden rounded-xl bg-muted">
+                  <div className="overflow-hidden rounded-[--radius] bg-muted">
                     <img
                       src={imageUrl}
                       alt="Receipt"
@@ -368,7 +368,7 @@ export default function ReviewReceipt() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-card">
+    <div className="rounded-[--radius] border border-rule bg-card p-4">
       <label className="mb-2 block text-sm font-semibold text-foreground">
         {label}
       </label>

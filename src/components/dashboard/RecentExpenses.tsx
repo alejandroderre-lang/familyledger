@@ -34,7 +34,7 @@ export function RecentExpenses({ expenses }: RecentExpensesProps) {
             No receipts yet!
           </p>
           <p className="text-sm text-muted-foreground">
-            Tap + to add your first one
+            Tap Add at the top to photograph your first one
           </p>
         </div>
       ) : (

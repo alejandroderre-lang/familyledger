@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { ExpenseFilter } from '@/components/expenses/ExpenseFilter'
 import { ExpenseRow } from '@/components/expenses/ExpenseRow'
@@ -25,8 +25,20 @@ export default function ExpensesList() {
 
   return (
     <AppShell>
-      <header className="px-4 pt-6 pb-4">
-        <h1 className="text-[28px] font-bold text-foreground">Expenses</h1>
+      {/* Same header shape as the dashboard, so the add action is in the same
+          place on both screens rather than only on one. */}
+      <header className="flex items-center justify-between gap-3 border-b border-rule px-4 pb-4 pt-6">
+        <h1 className="text-[24px] font-semibold tracking-tight text-foreground">
+          Expenses
+        </h1>
+        <button
+          type="button"
+          onClick={() => navigate('/upload')}
+          className="flex h-11 shrink-0 items-center gap-1.5 rounded-[--radius] bg-primary pl-2.5 pr-3.5 text-[13px] font-medium text-primary-foreground transition-opacity active:opacity-80"
+        >
+          <Plus className="h-4 w-4" strokeWidth={2.5} />
+          Add
+        </button>
       </header>
 
       <ExpenseFilter
@@ -58,14 +70,17 @@ export default function ExpensesList() {
             No receipts yet!
           </p>
           <p className="text-sm text-muted-foreground">
-            Tap + to add your first one
+            Photograph one and it will show up here
           </p>
+          {/* The primary action on a first-time user's screen: a real button
+              at the 48px minimum, not a text link. */}
           <button
             type="button"
             onClick={() => navigate('/upload')}
-            className="mt-2 text-sm font-medium text-primary"
+            className="mt-4 flex h-12 items-center gap-2 rounded-[--radius] bg-primary px-5 text-[15px] font-medium text-primary-foreground transition-opacity active:opacity-80"
           >
-            Add a receipt →
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+            Add a receipt
           </button>
         </div>
       ) : (

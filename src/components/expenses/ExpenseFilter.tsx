@@ -33,7 +33,7 @@ export function ExpenseFilter({ filters, onChange, onClear }: ExpenseFilterProps
       : 'All categories'
 
   return (
-    <div className="sticky top-0 z-30 flex flex-col gap-3 border-b border-border bg-card p-4">
+    <div className="sticky top-0 z-30 flex flex-col gap-3 border-b border-rule bg-card p-4">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
         <Input

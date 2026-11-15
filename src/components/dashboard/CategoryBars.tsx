@@ -1,20 +1,14 @@
-import { formatCurrency, getCategoryColor, muteColor } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
 import { groupByCategory, isInMonth } from '@/lib/expense-utils'
 import type { Expense } from '@/types'
-import type { DesignDirection } from '@/design/directions'
 
 /**
- * How much colour each direction spends on the bars — the one axis where the
- * three genuinely disagree.
- *
- *   ledger    monochrome; rank is encoded by weight alone, as Ramp does
- *   statement monochrome, with the lime accent reserved for the top category
- *   grid      muted category hues, kept well below pill saturation
+ * Bars are greyscale: rank is carried by weight alone. Colour in this
+ * interface is reserved for status, so magnitude is encoded by darkness
+ * rather than by hue. The amount and share are printed on every row, so no
+ * information depends on distinguishing the shades.
  */
-function barFill(direction: DesignDirection, category: string, rank: number): string {
-  if (direction === 'grid') return muteColor(getCategoryColor(category))
-  if (direction === 'statement' && rank === 0) return 'hsl(var(--accent-mark))'
-  // Each step down the ranking lightens the bar; floor keeps the tail visible.
+function barFill(rank: number): string {
   const lightness = Math.min(78, 14 + rank * 15)
   return `hsl(0 0% ${lightness}%)`
 }
@@ -22,7 +16,6 @@ function barFill(direction: DesignDirection, category: string, rank: number): st
 interface CategoryBarsProps {
   expenses: Expense[]
   currency: string
-  direction: DesignDirection
 }
 
 /**
@@ -32,7 +25,7 @@ interface CategoryBarsProps {
  * list puts rank, share, and amount on one line each. It is the chart Ramp
  * reaches for in spend breakdowns, and it reads at a glance on a phone.
  */
-export function CategoryBars({ expenses, currency, direction }: CategoryBarsProps) {
+export function CategoryBars({ expenses, currency }: CategoryBarsProps) {
   const now = new Date()
   const monthLabel = new Intl.DateTimeFormat('en-GB', {
     month: 'long',
@@ -83,20 +76,11 @@ export function CategoryBars({ expenses, currency, direction }: CategoryBarsProp
                 </div>
                 <div className="mt-1.5 flex items-center gap-2.5">
                   <div
-                    className={[
-                      'h-[5px] flex-1 overflow-hidden bg-muted',
-                      direction === 'grid' ? 'rounded-none' : 'rounded-sm',
-                    ].join(' ')}
+                    className="h-[5px] flex-1 overflow-hidden rounded-sm bg-muted"
                   >
                     <div
-                      className={[
-                        'h-full',
-                        direction === 'grid' ? 'rounded-none' : 'rounded-sm',
-                      ].join(' ')}
-                      style={{
-                        width: `${width}%`,
-                        background: barFill(direction, entry.category, rank),
-                      }}
+                      className="h-full rounded-sm"
+                      style={{ width: `${width}%`, background: barFill(rank) }}
                     />
                   </div>
                   <span className="w-8 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">

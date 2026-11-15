@@ -39,7 +39,7 @@ export default function Login() {
 
   return (
     <div className="flex min-h-[100svh] items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-card">
+      <div className="w-full max-w-sm rounded-[--radius] border border-rule bg-card p-6">
         <div className="mb-6 flex flex-col items-center text-center">
           <Receipt className="h-10 w-10 text-primary" strokeWidth={2} />
           <h1 className="mt-3 text-[28px] font-bold text-primary">FamilyLedger</h1>

@@ -148,7 +148,7 @@ export default function UploadReceipt() {
         )}
 
         {previewUrl && phase !== 'select' && (
-          <div className="mb-4 overflow-hidden rounded-xl bg-muted">
+          <div className="mb-4 overflow-hidden rounded-[--radius] bg-muted">
             <img
               src={previewUrl}
               alt="Receipt preview"
@@ -158,7 +158,7 @@ export default function UploadReceipt() {
         )}
 
         {phase === 'processing' && (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card p-6 text-center shadow-card">
+          <div className="flex flex-col items-center gap-3 rounded-[--radius] border border-rule bg-card p-6 text-center">
             <Loader2 className="h-8 w-8 animate-spin text-success" />
             <div>
               <p className="text-base font-bold text-foreground">
@@ -172,7 +172,7 @@ export default function UploadReceipt() {
         )}
 
         {phase === 'error' && (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card p-6 text-center shadow-card">
+          <div className="flex flex-col items-center gap-3 rounded-[--radius] border border-rule bg-card p-6 text-center">
             <XCircle className="h-8 w-8 text-destructive" />
             <div>
               <p className="text-base font-bold text-foreground">
@@ -217,7 +217,7 @@ function UploadCard({ icon, title, subtitle, onClick }: UploadCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className="flex h-24 w-full items-center gap-4 rounded-xl border-[1.5px] border-border bg-card px-5 text-left"
+      className="flex h-24 w-full items-center gap-4 rounded-[--radius] border-[1.5px] border-rule bg-card px-5 text-left"
     >
       {icon}
       <div>
