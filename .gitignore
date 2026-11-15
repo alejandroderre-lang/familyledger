@@ -39,3 +39,6 @@ blob-report/
 
 # Generated screenshots (regenerate with: npm run screenshots -- <label>)
 tests/screenshots/
+
+# Demo recording working files (only docs/demo.gif is committed)
+tests/demo/

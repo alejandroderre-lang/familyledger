@@ -6,6 +6,25 @@ Built for two people: a standard user who photographs receipts on her phone, and
 
 ---
 
+## Demo
+
+<img src="docs/demo.gif" alt="Signing in, adding a receipt, reviewing the parsed fields, and saving it" width="300">
+
+Twenty-three seconds, recorded with Playwright against the local stack:
+
+1. **Sign in** — accounts are created by an admin; there is no sign-up.
+2. **Dashboard** — month/last month/year figures, then categories as ranked share bars.
+3. **Add a receipt** — pick a photo; it is converted from HEIC if needed and compressed to 1MB before upload.
+4. **Parse** — the "Analysing your receipt" state is the real edge function calling Claude. Nothing is mocked here: the line items you see appear because the model read them off the image.
+5. **Review** — every field is editable. Note `LECHE` came through as quantity 2 at 1.50, folded from the receipt's separate `2 x 1,50` row, and `TOMAT` as 0.68 kg at 3.99.
+6. **Save** — the expense lands on the dashboard.
+
+The three-way `Ledger / Statement / Grid` control near the bottom is temporary design scaffolding, not a shipped feature — see [Design directions](#design-directions).
+
+> Recorded with the seeded test account and a synthetic receipt. No real account, email, or expense data appears, and the password field is never unmasked.
+
+---
+
 ## Architecture
 
 Everything below is what the code actually does today — local only, nothing deployed.
