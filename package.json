@@ -20,7 +20,8 @@
     "diagrams:check": "tsx tests/render-diagrams.ts",
     "demo:record": "tsx tests/record-demo.ts",
     "explore": "tsx tests/explore.ts",
-    "fixtures:device": "tsx tests/fixtures/generate-device-images.ts"
+    "fixtures:device": "tsx tests/fixtures/generate-device-images.ts",
+    "cost": "tsx tests/cost-report.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.17",

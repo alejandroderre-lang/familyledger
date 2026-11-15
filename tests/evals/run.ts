@@ -122,6 +122,14 @@ async function runFixture(fixture: ReceiptFixture, userId: string) {
   })
   const elapsed = ((Date.now() - started) / 1000).toFixed(1)
 
+  // Read the usage the function recorded before deleting the row, so an eval
+  // run doubles as a cost measurement on ten realistic parses.
+  const { data: usageRow } = await admin
+    .from('receipts')
+    .select('model, input_tokens, output_tokens')
+    .eq('id', receipt.id)
+    .maybeSingle()
+
   // Evals and the Playwright suite share the test account. Leaving these rows
   // behind changes what the dashboard renders and breaks E2E assertions, so
   // clean up regardless of outcome. expenses/expense_items cascade.
@@ -138,10 +146,16 @@ async function runFixture(fixture: ReceiptFixture, userId: string) {
         /* keep original */
       }
     }
-    return { fixture, elapsed, failed: detail, results: [] as FieldResult[] }
+    return { fixture, elapsed, failed: detail, usage: usageRow ?? null, results: [] as FieldResult[] }
   }
 
-  return { fixture, elapsed, failed: null, results: compare(fixture.expected, data.parsed ?? {}) }
+  return {
+    fixture,
+    elapsed,
+    failed: null,
+    usage: usageRow ?? null,
+    results: compare(fixture.expected, data.parsed ?? {}),
+  }
 }
 
 async function main() {
@@ -152,10 +166,24 @@ async function main() {
   let totalFields = 0
   let passedFields = 0
   const failures: string[] = []
+  // USD per million tokens; see tests/cost-report.ts for the source.
+  const PRICING: Record<string, { input: number; output: number }> = {
+    'claude-opus-5': { input: 5, output: 25 },
+    'claude-sonnet-5': { input: 3, output: 15 },
+    'claude-haiku-4-5': { input: 1, output: 5 },
+  }
+  let runCost = 0
+  let priced = 0
 
   for (const fixture of RECEIPT_FIXTURES) {
     process.stdout.write(`\n── ${fixture.id}\n   ${fixture.tests}\n`)
-    const { elapsed, failed, results } = await runFixture(fixture, user.id)
+    const { elapsed, failed, results, usage } = await runFixture(fixture, user.id)
+
+    const price = usage?.model ? PRICING[usage.model] : undefined
+    if (price && usage?.input_tokens != null && usage?.output_tokens != null) {
+      runCost += (usage.input_tokens / 1e6) * price.input + (usage.output_tokens / 1e6) * price.output
+      priced += 1
+    }
 
     if (failed) {
       console.log(`   ✗ FUNCTION ERROR (${elapsed}s): ${failed}`)
@@ -177,6 +205,11 @@ async function main() {
   const pct = totalFields ? ((passedFields / totalFields) * 100).toFixed(1) : '0.0'
   console.log(`\n${'─'.repeat(52)}`)
   console.log(`${passedFields}/${totalFields} fields correct across ${RECEIPT_FIXTURES.length} receipts (${pct}%)`)
+  if (priced > 0) {
+    console.log(
+      `$${runCost.toFixed(4)} for this run · $${(runCost / priced).toFixed(4)} mean per receipt`,
+    )
+  }
   if (failures.length) {
     console.log(`${failures.length} failing field(s)`)
     process.exitCode = 1

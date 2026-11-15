@@ -138,8 +138,10 @@ serve(async (req) => {
     }
 
     // Call Claude with vision
+    const MODEL = "claude-opus-5"
+    const startedAt = Date.now()
     const message = await anthropic.messages.create({
-      model: "claude-opus-5",
+      model: MODEL,
       max_tokens: 16000,
       output_config: { format: { type: "json_schema", schema: RECEIPT_SCHEMA } },
       messages: [
@@ -195,10 +197,19 @@ Accuracy over completeness: if a specific character or field is genuinely unread
     )
     const rawResponse = textBlock?.text ?? ""
 
+    // Recorded on every path below, so a failed parse still shows what it
+    // cost — those are exactly the ones worth noticing on a bill.
+    const usage = {
+      model: MODEL,
+      input_tokens: message.usage?.input_tokens ?? null,
+      output_tokens: message.usage?.output_tokens ?? null,
+      parse_ms: Date.now() - startedAt,
+    }
+
     if (message.stop_reason === "max_tokens") {
       await supabase
         .from("receipts")
-        .update({ status: "error", raw_ai_response: rawResponse })
+        .update({ status: "error", raw_ai_response: rawResponse, ...usage })
         .eq("id", receipt_id)
 
       return new Response(
@@ -224,7 +235,7 @@ Accuracy over completeness: if a specific character or field is genuinely unread
     } catch {
       await supabase
         .from("receipts")
-        .update({ status: "error", raw_ai_response: rawResponse })
+        .update({ status: "error", raw_ai_response: rawResponse, ...usage })
         .eq("id", receipt_id)
 
       return new Response(
@@ -272,7 +283,7 @@ Accuracy over completeness: if a specific character or field is genuinely unread
     // Update receipt status
     await supabase
       .from("receipts")
-      .update({ status: "parsed", raw_ai_response: rawResponse })
+      .update({ status: "parsed", raw_ai_response: rawResponse, ...usage })
       .eq("id", receipt_id)
 
     return new Response(
