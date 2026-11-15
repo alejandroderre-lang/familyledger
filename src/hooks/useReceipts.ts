@@ -1,5 +1,4 @@
 import imageCompression from 'browser-image-compression'
-import heic2any from 'heic2any'
 import { supabase } from '@/lib/supabase'
 import type { ParsedReceiptData } from '@/types'
 
@@ -19,6 +18,11 @@ export async function prepareImage(file: File): Promise<File> {
   let working: File = file
 
   if (isHeic(file)) {
+    // Loaded on demand rather than at startup. heic2any bundles a libheif
+    // decoder and dominates the main chunk, yet only runs when someone picks
+    // a HEIC — which never happens on the login or dashboard screens where
+    // first-load cost actually matters.
+    const { default: heic2any } = await import('heic2any')
     const converted = await heic2any({
       blob: file,
       toType: 'image/jpeg',
