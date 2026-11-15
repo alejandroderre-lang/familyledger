@@ -1,5 +1,9 @@
--- Enable UUID extension
-create extension if not exists "uuid-ossp";
+-- UUIDs come from gen_random_uuid(), built into Postgres 13+. The uuid-ossp
+-- extension was previously required here, but hosted Supabase installs
+-- extensions into the `extensions` schema rather than `public`, so
+-- gen_random_uuid() is not on the search path and every table creation failed
+-- on deploy. gen_random_uuid() needs no extension and resolves identically on
+-- the local stack and the hosted project.
 
 -- Profiles table (extends Supabase auth.users)
 create table public.profiles (
@@ -26,7 +30,7 @@ create trigger on_auth_user_created
 
 -- Receipts table (tracks upload + parsing lifecycle)
 create table public.receipts (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid references public.profiles(id) on delete cascade not null,
   image_url text not null,
   status text not null default 'processing' check (status in ('processing', 'parsed', 'confirmed', 'error')),
@@ -36,7 +40,7 @@ create table public.receipts (
 
 -- Expenses table (one per receipt, after parsing)
 create table public.expenses (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   receipt_id uuid references public.receipts(id) on delete cascade not null,
   user_id uuid references public.profiles(id) on delete cascade not null,
   date date not null,
@@ -61,7 +65,7 @@ create table public.expenses (
 
 -- Line items table (breakdown of items on the receipt)
 create table public.expense_items (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   expense_id uuid references public.expenses(id) on delete cascade not null,
   description text not null,
   quantity numeric(10,2) not null default 1,
