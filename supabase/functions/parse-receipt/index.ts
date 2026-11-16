@@ -82,30 +82,68 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 }
 
+/**
+ * Record a failed parse on the receipt row, then build the response.
+ *
+ * Every failure path goes through here. Previously only two of six wrote
+ * anything back, and the rest left the row at status 'processing' — which
+ * reads as work still in flight rather than something that died, so nobody
+ * could tell a broken parse from a slow one.
+ *
+ * The write is best-effort: if it fails we still return the error to the
+ * caller rather than masking the original fault with a database problem.
+ */
+async function failParse(
+  supabase: ReturnType<typeof createClient> | null,
+  receiptId: string | null,
+  code: string,
+  message: string,
+  status: number,
+  extra: Record<string, unknown> = {},
+): Promise<Response> {
+  if (supabase && receiptId) {
+    try {
+      await supabase
+        .from("receipts")
+        .update({ status: "error", error_code: code, ...extra })
+        .eq("id", receiptId)
+    } catch (_) {
+      // Swallow: the caller's error is the one worth reporting.
+    }
+  }
+  return new Response(
+    JSON.stringify({ error: message, code }),
+    { status, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+  )
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders })
   }
 
-  try {
-    // Without a key every request fails deep inside the SDK and surfaces to the
-    // app as an unreadable-image error. Fail loudly and specifically instead.
-    if (!anthropicApiKey) {
-      return new Response(
-        JSON.stringify({
-          error: "ANTHROPIC_API_KEY is not set for this function",
-          code: "missing_api_key",
-        }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      )
-    }
+  // Hoisted so the outer catch can still mark the receipt as failed.
+  let supabase: ReturnType<typeof createClient> | null = null
+  let receipt_id: string | null = null
 
-    const supabase = createClient(
+  try {
+    supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     )
 
-    const { receipt_id, image_url } = await req.json()
+    const body = await req.json()
+    receipt_id = body.receipt_id ?? null
+    const image_url = body.image_url
+
+    // Without a key every request fails deep inside the SDK and surfaces to the
+    // app as an unreadable-image error. Fail loudly and specifically instead.
+    if (!anthropicApiKey) {
+      return await failParse(
+        supabase, receipt_id, "missing_api_key",
+        "ANTHROPIC_API_KEY is not set for this function", 500,
+      )
+    }
 
     // Fetch image from Supabase Storage and convert to base64
     const { data: imageData, error: imageError } = await supabase
@@ -128,12 +166,10 @@ serve(async (req) => {
     const mediaType = toSupportedMediaType(imageData.type || "image/jpeg")
 
     if (!mediaType) {
-      return new Response(
-        JSON.stringify({
-          error: `Unsupported image type: ${imageData.type}. Convert to JPEG or PNG before upload.`,
-          code: "unsupported_media_type",
-        }),
-        { status: 415, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      return await failParse(
+        supabase, receipt_id, "unsupported_media_type",
+        `Unsupported image type: ${imageData.type}. Convert to JPEG or PNG before upload.`,
+        415,
       )
     }
 
@@ -207,24 +243,18 @@ Accuracy over completeness: if a specific character or field is genuinely unread
     }
 
     if (message.stop_reason === "max_tokens") {
-      await supabase
-        .from("receipts")
-        .update({ status: "error", raw_ai_response: rawResponse, ...usage })
-        .eq("id", receipt_id)
-
-      return new Response(
-        JSON.stringify({
-          error: "Response was truncated before the receipt was fully read",
-          code: "max_tokens",
-        }),
-        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      return await failParse(
+        supabase, receipt_id, "max_tokens",
+        "Response was truncated before the receipt was fully read", 422,
+        { raw_ai_response: rawResponse, ...usage },
       )
     }
 
     if (message.stop_reason === "refusal") {
-      return new Response(
-        JSON.stringify({ error: "The model declined this image", code: "refusal" }),
-        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      return await failParse(
+        supabase, receipt_id, "refusal",
+        "The model declined this image", 422,
+        { raw_ai_response: rawResponse, ...usage },
       )
     }
 
@@ -233,14 +263,10 @@ Accuracy over completeness: if a specific character or field is genuinely unread
     try {
       parsed = JSON.parse(rawResponse)
     } catch {
-      await supabase
-        .from("receipts")
-        .update({ status: "error", raw_ai_response: rawResponse, ...usage })
-        .eq("id", receipt_id)
-
-      return new Response(
-        JSON.stringify({ error: "Failed to parse AI response", raw: rawResponse }),
-        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      return await failParse(
+        supabase, receipt_id, "unparseable_response",
+        "Failed to parse AI response", 422,
+        { raw_ai_response: rawResponse, ...usage },
       )
     }
 
@@ -292,9 +318,11 @@ Accuracy over completeness: if a specific character or field is genuinely unread
     )
 
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    // Anything unhandled still marks the receipt, so it does not sit at
+    // 'processing' looking like work in flight.
+    return await failParse(
+      supabase, receipt_id, "unexpected_error",
+      error instanceof Error ? error.message : String(error), 500,
     )
   }
 })
