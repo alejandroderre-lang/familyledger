@@ -90,3 +90,16 @@ export function muteColor(hex: string, saturation = 0.34, lightness = 0.9): stri
     l * lightness * 100,
   )}%)`
 }
+
+/**
+ * Is this string a UUID?
+ *
+ * Route params come from the URL and reach Postgres as a predicate, so a
+ * typo in the address bar is rejected as a malformed uuid with HTTP 400 and
+ * an error-level console entry. Checking the shape first turns a
+ * hand-edited URL into an ordinary "not found" with no noise.
+ */
+export function isUuid(value: string | undefined): value is string {
+  if (!value) return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+}

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { isUuid } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -43,15 +44,20 @@ export default function ReviewReceipt() {
     queryKey: ['receipt-review', receiptId],
     enabled: Boolean(receiptId),
     queryFn: async (): Promise<ReviewData> => {
+      // Guard the route param and use maybeSingle for the same reason as
+      // fetchExpense: a missing or mistyped id is an ordinary not-found, not
+      // something worth an error in the console.
+      if (!isUuid(receiptId)) return { receipt: null, expense: null }
+
       const { data: receipt } = await supabase
         .from('receipts')
         .select('id, image_url, status')
-        .eq('id', receiptId as string)
-        .single()
+        .eq('id', receiptId)
+        .maybeSingle()
       const { data: expense } = await supabase
         .from('expenses')
         .select('*, items:expense_items(*)')
-        .eq('receipt_id', receiptId as string)
+        .eq('receipt_id', receiptId)
         .maybeSingle()
       return { receipt, expense: expense as ReviewData['expense'] }
     },
