@@ -218,6 +218,15 @@ Only the dashboard has been reworked. Upload, Review and Profile still carry the
 
 ---
 
+## Other docs
+
+| | |
+|---|---|
+| [`CLAUDE.md`](CLAUDE.md) | Working conventions and the gotchas that have cost time — read before changing the design, the parse prompt, or anything touching migrations |
+| [`docs/original-spec.md`](docs/original-spec.md) | The original build brief. **Historical** — it describes a donut chart and components that no longer exist |
+
+---
+
 ## Layout
 
 ```
