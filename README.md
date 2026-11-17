@@ -19,7 +19,7 @@ Twenty-three seconds, recorded with Playwright against the local stack:
 5. **Review** — every field is editable. Note `LECHE` came through as quantity 2 at 1.50, folded from the receipt's separate `2 x 1,50` row, and `TOMAT` as 0.68 kg at 3.99.
 6. **Save** — the expense lands on the dashboard.
 
-The three-way `Ledger / Statement / Grid` control near the bottom is temporary design scaffolding, not a shipped feature — see [Design directions](#design-directions).
+See [Design](#design) for the conventions the interface follows.
 
 > Recorded with the seeded test account and a synthetic receipt. No real account, email, or expense data appears, and the password field is never unmasked.
 
@@ -202,19 +202,17 @@ npm run fixtures:generate
 
 ---
 
-## Design directions
+## Design
 
-The dashboard is currently rendered in one of three interchangeable directions, all built in Ramp's register — hairline rules rather than shadows, tabular figures, near-monochrome, one accent spent sparingly.
+Built in Ramp's register: hairline rules rather than shadows, flat surfaces, tabular figures, near-monochrome, small uppercase micro-labels.
 
-| Direction | Character |
-|---|---|
-| `ledger` | One bordered metric strip split by hairlines; greyscale bars where rank is carried by weight |
-| `statement` | Near-black hero with the month total reversed out; lime accent used twice |
-| `grid` | Four-cell metric grid; category hues at a third of pill saturation |
+Three directions were built and compared side by side — `ledger`, `statement` and `grid`. **Ledger shipped** and is now the only one; the other two and the switcher that toggled them are gone.
 
-Switch with `?design=ledger` (or `statement` / `grid`), or the temporary control above the bottom navigation. **That switcher is scaffolding** — remove `DesignSwitcher` once a direction is chosen.
+What that means in practice:
 
-Only the dashboard has been reworked. Upload, Review and Profile still carry the original card treatment.
+- **No card elevation.** Surfaces separate with a hairline (`--rule`), never a shadow. Radius comes from `--radius`.
+- **Colour carries meaning only** — category ticks and status. Category bars are greyscale, encoding rank by darkness rather than hue, with the amount and share printed on every row so nothing depends on telling the shades apart.
+- **48px minimum tap targets**, checked by `npm run explore`. The intended user is an older adult on a phone; this is a requirement rather than a preference.
 
 ---
 
@@ -236,27 +234,55 @@ src/
     expenses/      ExpenseRow, filters, line-item editor
     layout/        AppShell, BottomNav
     ui/            shadcn primitives
-  design/          design directions + the hook that applies them
   hooks/           useAuth, useExpenses, useReceipts
   lib/             Supabase client, formatters, expense maths
   pages/           one per route
 supabase/
-  migrations/      001 schema · 002 storage · 003+004 role grants
+  migrations/      001–007, see below
   functions/
     parse-receipt/ the vision call (Deno)
 tests/
-  e2e/             Playwright specs
+  e2e/             Playwright specs (Chromium + WebKit)
   evals/           scored OCR runs against the live model
   fixtures/        synthetic receipts + expected parses
+  health.ts        parse failures by reason
+  cost-report.ts   spend per receipt
+  explore.ts       exploratory sweep for console errors and tap targets
+docs/
+  demo.gif         the recorded main flow
+  original-spec.md the historical build brief
 ```
 
 ### Migrations worth knowing about
 
-`001` is the schema from the spec. The other three exist because Supabase's hosted dashboard state never made it into version control, so a rebuilt backend was missing pieces:
+`001` is the original schema. Everything after it exists because something
+that should have been in version control wasn't — most of it discovered by
+deploying, not by testing.
 
-- **002** — the `receipts` storage bucket and its RLS policies
-- **003** — table grants for `authenticated`. RLS filters rows a role may already touch; without the grant every request fails with `permission denied`
-- **004** — the same grants for `service_role`, which the edge function uses to write parsed expenses
+| | |
+|---|---|
+| **002** | The `receipts` storage bucket and its RLS policies. Previously hand-made dashboard state, so a rebuilt backend had no bucket at all. |
+| **003** | Table grants for `authenticated`. RLS filters rows a role may already touch; without the grant every request fails `permission denied`. |
+| **004** | The same for `service_role`, which the edge function uses to write parsed expenses. |
+| **005** | Revokes `anon`'s table privileges. `003` claimed anon had none — true on a current local stack, false on hosted, where Supabase grants them before any migration runs. |
+| **006** | Per-parse token usage on `receipts`, so cost is measured rather than estimated. |
+| **007** | `error_code` plus a `parse_health` view. The function had six failure paths and only two recorded anything; the rest left rows stuck at `processing`. |
+
+`001` also had to change to deploy at all: it used `uuid_generate_v4()`, which
+is not on the search path on hosted Supabase, so every table creation failed.
+It now uses `gen_random_uuid()`.
+
+### Operational
+
+```bash
+npm run health          # parse failures by reason; add `-- hosted` for production
+npm run cost            # spend per receipt from recorded token usage
+npm run explore         # sweep for console errors, tap targets, overflow
+```
+
+`npm run health` exits non-zero when anything failed, and flags receipts stuck
+in `processing` past five minutes — a function that crashes never writes an
+`error_code`, so those are findable only by age.
 
 ---
 
